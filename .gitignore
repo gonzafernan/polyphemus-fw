@@ -1,0 +1,8 @@
+# SMT32CubeMX files
+*.launch
+
+# VS Code files
+.vscode/
+
+# Project files
+build/
