@@ -1,5 +1,6 @@
 # SMT32CubeMX files
 *.launch
+.mxproject
 
 # VS Code files
 .vscode/
