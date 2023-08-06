@@ -187,15 +187,20 @@ C_SOURCES += micro_ros_stm32cubemx_utils/extra_sources/microros_transports/dma_t
 print_cflags:
 	@echo $(CFLAGS)
 
+#######################################
+# Polyphemus firmware
+#######################################
+# C_SOURCES += \
+# src/app/src/app.c
 
 #######################################
 # IMU driver
 #######################################
-C_INCLUDES += -Isrc/driver/mpu6050/inc
+C_INCLUDES += -Iapp/driver/mpu6050/inc
 
 C_SOURCES += \
-src/driver/mpu6050/src/port_i2c.c \
-src/driver/mpu6050/src/mpu6050.c
+app/driver/mpu6050/src/port_i2c.c \
+app/driver/mpu6050/src/mpu6050.c
 
 #######################################
 # build the application
