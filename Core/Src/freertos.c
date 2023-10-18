@@ -1,41 +1,43 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : freertos.c
+ * Description        : Code for freertos applications
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
-#include "task.h"
-#include "main.h"
 #include "cmsis_os.h"
+#include "main.h"
+#include "task.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <rcl/rcl.h>
 #include <rcl/error_handling.h>
-#include <rclc/rclc.h>
+#include <rcl/rcl.h>
 #include <rclc/executor.h>
-#include <uxr/client/transport.h>
-#include <rmw_microxrcedds_c/config.h>
+#include <rclc/rclc.h>
 #include <rmw_microros/rmw_microros.h>
+#include <rmw_microxrcedds_c/config.h>
+#include <uxr/client/transport.h>
 
 #include <std_msgs/msg/int32.h>
 
 #include "usart.h"
+
+#include "mpu6050.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,27 +58,30 @@ typedef StaticTask_t osStaticThreadDef_t;
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-bool cubemx_transport_open(struct uxrCustomTransport * transport);
-bool cubemx_transport_close(struct uxrCustomTransport * transport);
-size_t cubemx_transport_write(struct uxrCustomTransport* transport, const uint8_t * buf, size_t len, uint8_t * err);
-size_t cubemx_transport_read(struct uxrCustomTransport* transport, uint8_t* buf, size_t len, int timeout, uint8_t* err);
+extern I2C_HandleTypeDef hi2c1;
+mpu6050_t hmpu; /*!> Driver MPU6050 */
 
-void * microros_allocate(size_t size, void * state);
-void microros_deallocate(void * pointer, void * state);
-void * microros_reallocate(void * pointer, size_t size, void * state);
-void * microros_zero_allocate(size_t number_of_elements, size_t size_of_element, void * state);
+bool cubemx_transport_open(struct uxrCustomTransport *transport);
+bool cubemx_transport_close(struct uxrCustomTransport *transport);
+size_t cubemx_transport_write(struct uxrCustomTransport *transport, const uint8_t *buf, size_t len, uint8_t *err);
+size_t cubemx_transport_read(struct uxrCustomTransport *transport, uint8_t *buf, size_t len, int timeout, uint8_t *err);
+
+void *microros_allocate(size_t size, void *state);
+void microros_deallocate(void *pointer, void *state);
+void *microros_reallocate(void *pointer, size_t size, void *state);
+void *microros_zero_allocate(size_t number_of_elements, size_t size_of_element, void *state);
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
-uint32_t defaultTaskBuffer[ 3000 ];
+uint32_t defaultTaskBuffer[3000];
 osStaticThreadDef_t defaultTaskControlBlock;
 const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .cb_mem = &defaultTaskControlBlock,
-  .cb_size = sizeof(defaultTaskControlBlock),
-  .stack_mem = &defaultTaskBuffer[0],
-  .stack_size = sizeof(defaultTaskBuffer),
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "defaultTask",
+    .cb_mem = &defaultTaskControlBlock,
+    .cb_size = sizeof(defaultTaskControlBlock),
+    .stack_mem = &defaultTaskBuffer[0],
+    .stack_size = sizeof(defaultTaskBuffer),
+    .priority = (osPriority_t)osPriorityNormal,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -89,48 +94,49 @@ void StartDefaultTask(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
-void MX_FREERTOS_Init(void) {
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void)
+{
   /* USER CODE BEGIN Init */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
   /* USER CODE END Init */
-/* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * File Name          :
-  * Description        :
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
-/* USER CODE END Header */
+  /* USER CODE BEGIN Header */
+  /**
+   ******************************************************************************
+   * File Name          : freertos.c
+   * Description        : Code for freertos applications
+   ******************************************************************************
+   * @attention
+   *
+   * Copyright (c) 2023 STMicroelectronics.
+   * All rights reserved.
+   *
+   * This software is licensed under terms that can be found in the LICENSE file
+   * in the root directory of this software component.
+   * If no LICENSE file comes with this software, it is provided AS-IS.
+   *
+   ******************************************************************************
+   */
+  /* USER CODE END Header */
 
-/**
-  * @}
-  */
+  /**
+   * @}
+   */
 
-/**
-  * @}
-  */
+  /**
+   * @}
+   */
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+ * @brief  Function implementing the defaultTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
@@ -139,21 +145,22 @@ void StartDefaultTask(void *argument)
   /* micro-ROS configuration */
 
   rmw_uros_set_custom_transport(
-    true,
-    (void *) &huart3,
-    cubemx_transport_open,
-    cubemx_transport_close,
-    cubemx_transport_write,
-    cubemx_transport_read);
+      true,
+      (void *)&huart3,
+      cubemx_transport_open,
+      cubemx_transport_close,
+      cubemx_transport_write,
+      cubemx_transport_read);
 
   rcl_allocator_t freeRTOS_allocator = rcutils_get_zero_initialized_allocator();
   freeRTOS_allocator.allocate = microros_allocate;
   freeRTOS_allocator.deallocate = microros_deallocate;
   freeRTOS_allocator.reallocate = microros_reallocate;
-  freeRTOS_allocator.zero_allocate =  microros_zero_allocate;
+  freeRTOS_allocator.zero_allocate = microros_zero_allocate;
 
-  if (!rcutils_set_default_allocator(&freeRTOS_allocator)) {
-      printf("Error on default allocators (line %d)\n", __LINE__); 
+  if (!rcutils_set_default_allocator(&freeRTOS_allocator))
+  {
+    printf("Error on default allocators (line %d)\n", __LINE__);
   }
 
   // micro-ROS app
@@ -166,7 +173,7 @@ void StartDefaultTask(void *argument)
 
   allocator = rcl_get_default_allocator();
 
-  //create init_options
+  // create init_options
   rclc_support_init(&support, 0, NULL, &allocator);
 
   // create node
@@ -174,23 +181,35 @@ void StartDefaultTask(void *argument)
 
   // create publisher
   rclc_publisher_init_default(
-    &publisher,
-    &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-    "cubemx_publisher");
+      &publisher,
+      &node,
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+      "cubemx_publisher");
 
+  mpu6050_init(&hmpu, (void *)&hi2c1);
   msg.data = 0;
 
-  for(;;)
+  mpu6050_status_t mpu_status;
+
+  uint16_t gyroX, gyroY, gyroZ;
+  mpu6050_reset_pwrmgmt(&hmpu);
+
+  for (;;)
   {
+    // mpu_status = mpu6050_sanity_check(&hmpu);
+    mpu_status = mpu6050_gyro_read_raw(&hmpu, &gyroX, &gyroY, &gyroZ);
+    if (mpu_status == MPU6050_OK)
+    {
+      msg.data = (int32_t)gyroX;
+    }
     rcl_ret_t ret = rcl_publish(&publisher, &msg, NULL);
     if (ret != RCL_RET_OK)
     {
-      printf("Error publishing (line %d)\n", __LINE__); 
+      printf("Error publishing (line %d)\n", __LINE__);
     }
-    
-    msg.data++;
-    osDelay(10);
+
+    // msg.data++;
+    osDelay(200);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -199,4 +218,3 @@ void StartDefaultTask(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-

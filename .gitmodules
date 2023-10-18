@@ -1,6 +1,9 @@
 [submodule "micro_ros_stm32cubemx_utils"]
 	path = micro_ros_stm32cubemx_utils
 	url = https://github.com/micro-ROS/micro_ros_stm32cubemx_utils
-[submodule "app"]
-	path = app
-	url = git@github.com:gonzafernan/polyphemus-core.git
+[submodule "app/driver/ov7670"]
+	path = app/driver/ov7670
+	url = git@github.com:gonzafernan/ov7670-driver.git
+[submodule "app/driver/mpu6050"]
+	path = app/driver/mpu6050
+	url = git@github.com:gonzafernan/mpu6050-driver.git

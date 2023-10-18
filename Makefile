@@ -190,8 +190,10 @@ print_cflags:
 #######################################
 # Polyphemus firmware
 #######################################
-# C_SOURCES += \
-# src/app/src/app.c
+C_INCLUDES += -Iapp/core/inc
+
+C_SOURCES += \
+app/core/src/app.c
 
 #######################################
 # IMU driver
@@ -201,6 +203,15 @@ C_INCLUDES += -Iapp/driver/mpu6050/inc
 C_SOURCES += \
 app/driver/mpu6050/src/port_i2c.c \
 app/driver/mpu6050/src/mpu6050.c
+
+#######################################
+# Camera driver
+#######################################
+C_INCLUDES += -Iapp/driver/ov7670/inc
+
+C_SOURCES += \
+app/driver/ov7670/src/ov7670_port_i2c.c \
+app/driver/ov7670/src/ov7670.c
 
 #######################################
 # build the application
